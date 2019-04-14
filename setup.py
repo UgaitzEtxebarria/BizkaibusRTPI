@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
   name = 'bizkaibus',
   packages = ['bizkaibus'],
-  version = '0.1',
+  version = '0.1.1',
   license='MIT',
   description = 'Online information for buses of Biscay bus services (Basque Country, Spain).',
   author = 'Ugaitz Etxebarria',
