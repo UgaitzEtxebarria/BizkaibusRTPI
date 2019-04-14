@@ -11,8 +11,6 @@ setup(
   download_url = 'https://github.com/UgaitzEtxebarria/BizkaibusRTPI/archive/0.1.tar.gz',
   keywords = ['Bizkaibus', 'Bizkaia', 'Autobusa', 'rtpi', 'buses'],
   install_requires=[
-          'validators',
-          'beautifulsoup4',
       ],
   classifiers=[
     'Development Status :: 3 - Alpha',      # "3 - Alpha", "4 - Beta" or "5 - Production/Stable"
