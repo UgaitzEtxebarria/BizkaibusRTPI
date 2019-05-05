@@ -1,19 +1,10 @@
-
 """Support for Bizkaibus, Biscay (Basque Country, Spain) Bus service."""
 
-'''import logging
-
-import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
-
-from homeassistant.const import CONF_NAME
-from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.helpers.entity import Entity
-'''
 import xml.etree.ElementTree as ET
 
 import json
 import requests
+import datetime
 
 _RESOURCE = 'http://apli.bizkaia.net/'
 _RESOURCE += 'APPS/DANOK/TQWS/TQ.ASMX/GetPasoParadaMobile_JSON'
@@ -38,7 +29,7 @@ class BizkaibusData:
                       ATTR_ROUTE: self.route,
                       ATTR_DUE_IN: 'n/a'}]
 
-    def getNextBus(self):
+    def getNextBus(self, isRelative):
         """Retrieve the information from API."""
         params = {}
         params['callback'] = ''
@@ -73,6 +64,8 @@ class BizkaibusData:
 
             if (routeName is not None and time is not None and
                     route is not None and route == self.route):
+                if not isRelative:
+                    time = (datetime.datetime.now() + datetime.timedelta(minutes=int(time))).isoformat()
                 bus_data = {ATTR_ROUTE_NAME: routeName,
                             ATTR_ROUTE: route,
                             ATTR_DUE_IN: time}
@@ -82,3 +75,4 @@ class BizkaibusData:
             self.info = [{ATTR_ROUTE_NAME: 'n/a',
                           ATTR_ROUTE: self.route,
                           ATTR_DUE_IN: 'n/a'}]
+
