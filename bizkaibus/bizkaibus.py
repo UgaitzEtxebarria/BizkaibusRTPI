@@ -67,7 +67,7 @@ class BizkaibusData:
                 if not isRelative:
                     if isUTC:
                         now = datetime.datetime.utcnow()
-                    else
+                    else:
                         now = datetime.datetime.now()
                     time = (now + datetime.timedelta(minutes=int(time))).isoformat()
                 bus_data = {ATTR_ROUTE_NAME: routeName,
