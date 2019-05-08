@@ -29,7 +29,7 @@ class BizkaibusData:
                       ATTR_ROUTE: self.route,
                       ATTR_DUE_IN: 'n/a'}]
 
-    def getNextBus(self, isRelative):
+    def getNextBus(self, isRelative, isUTC):
         """Retrieve the information from API."""
         params = {}
         params['callback'] = ''
@@ -65,7 +65,11 @@ class BizkaibusData:
             if (routeName is not None and time is not None and
                     route is not None and route == self.route):
                 if not isRelative:
-                    time = (datetime.datetime.now() + datetime.timedelta(minutes=int(time))).isoformat()
+                    if isUTC:
+                        now = datetime.datetime.utcnow()
+                    else
+                        now = datetime.datetime.now()
+                    time = (now + datetime.timedelta(minutes=int(time))).isoformat()
                 bus_data = {ATTR_ROUTE_NAME: routeName,
                             ATTR_ROUTE: route,
                             ATTR_DUE_IN: time}
