@@ -25,9 +25,19 @@ class BizkaibusData:
         """Initialize the data object."""
         self.stop = stop
         self.route = route
-        self.info = [{ATTR_ROUTE_NAME: 'n/a',
-                      ATTR_ROUTE: self.route,
-                      ATTR_DUE_IN: 'n/a'}]
+        self.__setUndefined()
+        
+    def TestConnection(self):
+        """Test the API."""
+        params = {}
+        params['callback'] = ''
+        params['strLinea'] = self.route
+        params['strParada'] = self.stop
+        
+        result = self.__connect(params)
+
+        return result != False
+
 
     def getNextBus(self, isRelative, isUTC):
         """Retrieve the information from API."""
@@ -35,6 +45,8 @@ class BizkaibusData:
         params['callback'] = ''
         params['strLinea'] = self.route
         params['strParada'] = self.stop
+
+        result = self.__connect(params)
 
         response = requests.get(_RESOURCE, params, timeout=10)
 
@@ -76,7 +88,32 @@ class BizkaibusData:
                 self.info.append(bus_data)
 
         if not self.info:
-            self.info = [{ATTR_ROUTE_NAME: 'n/a',
+            self.__setUndefined()
+            
+    async def __connect(self, params):
+        async with aiohttp.get(_RESOURCE, params, timeout=10) as response:
+            if response.status_code != 200:
+                self.__setUndefined()
+                return False
+
+            strJSON = response.text[1:-2].replace('\'', '"')
+            result = json.loads(strJSON)
+
+            if str(result['STATUS']) != 'OK':
+                self.__setUndefined()
+                return False
+            
+            return await result
+
+        
+
+    def __setUndefined(self):
+        self.info = [{ATTR_ROUTE_NAME: 'n/a',
                           ATTR_ROUTE: self.route,
                           ATTR_DUE_IN: 'n/a'}]
+
+bizka = BizkaibusData('0252', 'A3941')
+ok = bizka.TestConnection()
+
+print(ok)
 
