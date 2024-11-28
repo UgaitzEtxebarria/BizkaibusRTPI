@@ -3,7 +3,7 @@
 import xml.etree.ElementTree as ET
 
 import json
-import requests
+import aiohttp
 import datetime
 
 _RESOURCE = 'http://apli.bizkaia.net/'
