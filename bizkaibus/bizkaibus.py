@@ -1,5 +1,6 @@
 """Support for Bizkaibus, Biscay (Basque Country, Spain) Bus service."""
 
+import asyncio
 import xml.etree.ElementTree as ET
 
 import json
@@ -27,44 +28,29 @@ class BizkaibusData:
         self.route = route
         self.__setUndefined()
         
-    def TestConnection(self):
+    async def TestConnection(self):
         """Test the API."""
         params = {}
         params['callback'] = ''
         params['strLinea'] = self.route
         params['strParada'] = self.stop
         
-        result = self.__connect(params)
+        result = await self.__connect(params)
 
         return result != False
 
 
-    def getNextBus(self, isRelative, isUTC):
+    async def getNextBus(self, isRelative, isUTC):
         """Retrieve the information from API."""
         params = {}
         params['callback'] = ''
         params['strLinea'] = self.route
         params['strParada'] = self.stop
 
-        result = self.__connect(params)
+        result = await self.__connect(params)
 
-        response = requests.get(_RESOURCE, params, timeout=10)
-
-        if response.status_code != 200:
-
-            self.info = [{ATTR_ROUTE_NAME: 'n/a',
-                          ATTR_ROUTE: self.route,
-                          ATTR_DUE_IN: 'n/a'}]
-            return
-
-        strJSON = response.text[1:-2].replace('\'', '"')
-        result = json.loads(strJSON)
-
-        if str(result['STATUS']) != 'OK':
-            self.info = [{ATTR_ROUTE_NAME: 'n/a',
-                          ATTR_ROUTE: self.route,
-                          ATTR_DUE_IN: 'n/a'}]
-            return
+        if result == False:
+            self.__setUndefined()
 
         root = ET.fromstring(result['Resultado'])
 
@@ -91,21 +77,21 @@ class BizkaibusData:
             self.__setUndefined()
             
     async def __connect(self, params):
-        async with aiohttp.get(_RESOURCE, params, timeout=10) as response:
-            if response.status_code != 200:
-                self.__setUndefined()
-                return False
+        async with aiohttp.ClientSession() as session:
+            async with session.get(_RESOURCE, params=params) as response:
+                if response.status != 200:
+                    self.__setUndefined()
+                    return False
 
-            strJSON = response.text[1:-2].replace('\'', '"')
-            result = json.loads(strJSON)
+                strJSON = await response.json(content_type='text/javascript')
+                strJSON = response.text[1:-2].replace('\'', '"')
+                result = json.loads(strJSON)
 
-            if str(result['STATUS']) != 'OK':
-                self.__setUndefined()
-                return False
-            
-            return await result
-
-        
+                if str(result['STATUS']) != 'OK':
+                    self.__setUndefined()
+                    return False
+                
+                return result
 
     def __setUndefined(self):
         self.info = [{ATTR_ROUTE_NAME: 'n/a',
@@ -113,7 +99,8 @@ class BizkaibusData:
                           ATTR_DUE_IN: 'n/a'}]
 
 bizka = BizkaibusData('0252', 'A3941')
-ok = bizka.TestConnection()
+ok = asyncio.run(bizka.TestConnection())
 
 print(ok)
+
 
