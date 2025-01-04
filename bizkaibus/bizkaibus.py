@@ -1,7 +1,6 @@
 """Support for Bizkaibus, Biscay (Basque Country, Spain) Bus service."""
 
 import asyncio
-from typing import List
 import xml.etree.ElementTree as ET
 
 import json
@@ -166,13 +165,5 @@ class BizkaibusData:
         self.info = [{ATTR_ROUTE_NAME: 'n/a',
                           ATTR_DUE_IN: 'n/a'}]
 
-bizka = BizkaibusData('0252')
-ok = asyncio.run(bizka.TestConnection())
-
-if ok:
-    result = asyncio.run(bizka.GetTimetable())
-    print(result)
-    result = asyncio.run(bizka.GetNextBus('A3932'))
-    print(result)
 
 
