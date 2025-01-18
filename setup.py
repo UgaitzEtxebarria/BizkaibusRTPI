@@ -2,13 +2,13 @@ from distutils.core import setup
 setup(
   name = 'bizkaibus',
   packages = ['bizkaibus'],
-  version = '0.1.4',
+  version = '0.2.0',
   license='MIT',
   description = 'Online information for buses of Biscay bus services (Basque Country, Spain).',
   author = 'Ugaitz Etxebarria',
   author_email = 'etxeba17@gmail.com',
   url = 'https://github.com/UgaitzEtxebarria/BizkaibusRTPI',
-  download_url = 'https://github.com/UgaitzEtxebarria/BizkaibusRTPI/archive/0.1.4.tar.gz',
+  download_url = 'https://github.com/UgaitzEtxebarria/BizkaibusRTPI/archive/0.2.0.tar.gz',
   keywords = ['Bizkaibus', 'Bizkaia', 'Autobusa', 'rtpi', 'buses'],
   install_requires=[ 'aiohttp' ],
   classifiers=[
