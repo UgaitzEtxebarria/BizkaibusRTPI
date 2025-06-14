@@ -1,6 +1,5 @@
 """Support for Bizkaibus, Biscay (Basque Country, Spain) Bus service."""
 
-import asyncio
 import xml.etree.ElementTree as ET
 
 import json
@@ -43,13 +42,13 @@ class BizkaibusArrivalTime:
     def GetUTC(self):
         """Get the time in UTC format."""
         now = datetime.datetime.now(datetime.timezone.utc)
-        time = (now + datetime.timedelta(minutes=int(time))).isoformat()
+        time = (now + datetime.timedelta(minutes=int(self.time))).isoformat()
         return time
 
     def GetAbsolute(self):
         """Get the time in absolute format."""
         now = datetime.datetime.now()
-        time = (now + datetime.timedelta(minutes=int(time))).isoformat()
+        time = (now + datetime.timedelta(minutes=int(self.time))).isoformat()
         return time
 
     def __str__(self):
@@ -57,12 +56,14 @@ class BizkaibusArrivalTime:
         return f"{self.time} min"
 
 
-class BizkaibusArrival:
-    line: BizkaibusLine = None
-    closestArrival: BizkaibusArrivalTime = None
-    farestArrival: BizkaibusArrivalTime = None
+from typing import Optional
 
-    def __init__(self, line: BizkaibusLine, closestArrival: BizkaibusArrivalTime, farestArrival: BizkaibusArrivalTime):
+class BizkaibusArrival:
+    line: BizkaibusLine
+    closestArrival: BizkaibusArrivalTime
+    farestArrival: Optional[BizkaibusArrivalTime] = None
+
+    def __init__(self, line: BizkaibusLine, closestArrival: BizkaibusArrivalTime, farestArrival: Optional[BizkaibusArrivalTime] = None):
         """Initialize the data object."""
         self.line = line
         self.closestArrival = closestArrival
@@ -98,24 +99,28 @@ class BizkaibusData:
     async def TestConnection(self):
         """Test the API."""
         result = await self.__connect(self.stop)
-        return result != False
+        return result != None
 
-    async def GetTimetable(self) -> BizkaibusTimetable:
+    async def GetTimetable(self) -> Optional[BizkaibusTimetable]:
         """Retrieve the information of a stop arrivals."""
         return await self.__getTimetable()
 
-    async def GetNextBus(self, line) -> BizkaibusArrival:
+    async def GetNextBus(self, line) -> Optional[BizkaibusArrival]:
         """Retrieve the information of a bus on stop."""
         timetable = await self.__getTimetable()
-        return timetable.arrivals[line]
+
+        if timetable is None or timetable.arrivals is None:
+            return None
+        else:
+            return timetable.arrivals[line]
             
-    async def __connect(self, stop):
+    async def __connect(self, stop) -> Optional[dict[str, str]]:
         async with aiohttp.ClientSession() as session:
             params = self.__getAPIParams(stop)
             async with session.get(_RESOURCE, params=params) as response:
                 if response.status != 200:
                     self.__setUndefined()
-                    return False
+                    return None
 
                 strJSON = await response.text()
                 strJSON = strJSON[1:-2].replace('\'', '"')
@@ -123,29 +128,41 @@ class BizkaibusData:
 
                 if str(result['STATUS']) != 'OK':
                     self.__setUndefined()
-                    return False
+                    return None
                 
                 return result
 
-    async def __getTimetable(self) -> BizkaibusTimetable:
+    async def __getTimetable(self) -> Optional[BizkaibusTimetable]:
         result = await self.__connect(self.stop)
-        if result == False:
+        if result == None:
             self.__setUndefined()
-            return False
+            return None
 
         root = ET.fromstring(result['Resultado'])
 
         timetable = BizkaibusTimetable(self.stop)
 
         for childBus in root.findall("PasoParada"):
-            route = childBus.find('linea').text
-            routeName = childBus.find('ruta').text
-            time1 = childBus.find('e1').find('minutos').text
-            time2 = childBus.find('e2').find('minutos').text
+            linea_elem = childBus.find('linea')
+            ruta_elem = childBus.find('ruta')
+            e1_elem = childBus.find('e1')
+            e2_elem = childBus.find('e2')
+
+            route = linea_elem.text if linea_elem is not None else None
+            routeName = ruta_elem.text if ruta_elem is not None else None
+            minutos1 = e1_elem.find('minutos') if e1_elem is not None else None
+            time1 = minutos1.text if minutos1 is not None else None
+            minutos2 = e2_elem.find('minutos') if e2_elem is not None else None
+            time2 = minutos2.text if minutos2 is not None else None
 
             if (routeName is not None and time1 is not None and route is not None):
-                stopArrival = BizkaibusArrival(BizkaibusLine(route, routeName), 
-                    BizkaibusArrivalTime(time1), BizkaibusArrivalTime(time2))
+                if time2 is None:
+                     stopArrival = BizkaibusArrival(BizkaibusLine(route, routeName), 
+                    BizkaibusArrivalTime(int(time1)))
+                else:
+                    stopArrival = BizkaibusArrival(BizkaibusLine(route, routeName), 
+                    BizkaibusArrivalTime(int(time1)), BizkaibusArrivalTime(int(time2)))
+
                 timetable.arrivals[stopArrival.line.id] = stopArrival
 
         if not timetable.arrivals:
