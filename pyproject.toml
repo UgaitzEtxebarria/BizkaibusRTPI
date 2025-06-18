@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools >= 77.0.3", "aiohttp"]
+requires = ["setuptools >= 77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "bizkaibus"
-version = "0.3.0"
+version = "0.3.1"
 description = "Online information for buses of Biscay bus services (Basque Country, Spain)."
 authors = [
     {name = "Ugaitz Etxebarria", email = "etxeba17@gmail.com"}
@@ -12,8 +12,7 @@ authors = [
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.6"
-dependencies = [
-]
+dependencies = ["aiohttp"]
 keywords = ["Bizkaibus", "Bizkaia", "Autobusa", "rtpi", "buses"]
 classifiers = [
   # How mature is this project? Common values are
