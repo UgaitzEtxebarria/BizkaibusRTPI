@@ -109,7 +109,7 @@ class BizkaibusData:
         """Retrieve the information of a bus on stop."""
         timetable = await self.__getTimetable()
 
-        if timetable is None or not timetable.arrivals:
+        if timetable is None or not timetable.arrivals or line not in timetable.arrivals:
             return None
         else:
             return timetable.arrivals[line]
