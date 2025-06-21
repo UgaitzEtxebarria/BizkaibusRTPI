@@ -134,7 +134,7 @@ class BizkaibusData:
 
     async def __getTimetable(self) -> Optional[BizkaibusTimetable]:
         result = await self.__connect(self.stop)
-        if result == None:
+        if result is None:
             self.__setUndefined()
             return None
 
@@ -181,6 +181,3 @@ class BizkaibusData:
     def __setUndefined(self):
         self.info = [{ATTR_ROUTE_NAME: 'n/a',
                           ATTR_DUE_IN: 'n/a'}]
-
-
-
