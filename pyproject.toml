@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bizkaibus"
-version = "0.3.4"
+version = "0.3.5"
 description = "Online information for buses of Biscay bus services (Basque Country, Spain)."
 authors = [
     {name = "Ugaitz Etxebarria", email = "etxeba17@gmail.com"}

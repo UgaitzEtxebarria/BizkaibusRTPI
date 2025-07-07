@@ -98,10 +98,10 @@ class BizkaibusData:
         self.stop = stop
         self.__setUndefined()
         
-    async def TestConnection(self):
+    async def TestConnection(self) -> bool: 
         """Test the API."""
         result = await self.__connect(self.stop)
-        return result != None
+        return result is not None
 
     async def GetTimetable(self) -> Optional[BizkaibusTimetable]:
         """Retrieve the information of a stop arrivals."""
