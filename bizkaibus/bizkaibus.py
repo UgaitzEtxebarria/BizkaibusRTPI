@@ -75,18 +75,20 @@ class BizkaibusArrival:
 
 class BizkaibusTimetable:
     """The class for handling the data retrieval."""
-    stop: str = ''
+    id: str = ''
+    name: str | None = ''
     arrivals: dict[str, BizkaibusArrival] = {}
 
-    def __init__(self, stop: str):
+    def __init__(self, id: str, name: str | None):
         """Initialize the data object."""
-        self.stop = stop
+        self.id = id
+        self.name = name
 
     def __str__(self):
         """Return a string representation of the object."""
 
         arrivals_str = ', '.join(str(arrival) for arrival in self.arrivals.values())
-        return f"Stop: {self.stop}, arrivals: {arrivals_str}"
+        return f"Stop: ({self.id}) {self.name}, arrivals: {arrivals_str}"
 
 class BizkaibusData:
     """The class for handling the data retrieval."""
@@ -140,7 +142,9 @@ class BizkaibusData:
 
         root = ET.fromstring(result['Resultado'])
 
-        timetable = BizkaibusTimetable(self.stop)
+        stopName = root.find('DenominacionParada')
+        stopNameStr = stopName.text if stopName is not None else None
+        timetable = BizkaibusTimetable(self.stop, stopNameStr)
 
         for childBus in root.findall("PasoParada"):
             linea_elem = childBus.find('linea')
