@@ -1,12 +1,14 @@
+from bizkaibus.ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam
+from bizkaibus.const import _RESOURCE, LINES_PER_TOWN_SERVICE
 
 class LinesInTownServiceParam(BizkaibusServiceParam):
 
-    def GetParams(self, stop: str) -> dict:
+    def __init__(self, province: str, stop: str):
         """Retrieve the parameters for the service."""
-        params = {}
-        params['callback'] = ''
-        params['iCodigoProvincia'] = ''
-        params['sCodigoMunicipio'] = stop
-        params['sDescripcionMunicipio'] = stop
-        return params
         
+        self.params['iCodigoProvincia'] = province
+        self.params['sCodigoMunicipio'] = stop
+        self.params['sDescripcionMunicipio'] = ""
+
+    def GetURL(self) -> str:
+        return _RESOURCE + LINES_PER_TOWN_SERVICE
