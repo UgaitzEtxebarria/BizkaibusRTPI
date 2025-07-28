@@ -1,7 +1,7 @@
 
 from typing import Optional
-from .BizkaibusArrivalTime import BizkaibusArrivalTime
-from .BizkaibusLine import BizkaibusLine
+from bizkaibus.Model.BizkaibusArrivalTime import BizkaibusArrivalTime
+from bizkaibus.Model.BizkaibusLine import BizkaibusLine
 
 class BizkaibusArrival:
     line: BizkaibusLine

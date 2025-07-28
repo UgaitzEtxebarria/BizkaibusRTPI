@@ -1,11 +1,13 @@
+from bizkaibus.ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam
+from bizkaibus.const import _RESOURCE, TIMETABLE_SERVICE
 
 class TimetableServiceParam(BizkaibusServiceParam):
 
-    def GetParams(self, stop: str) -> dict:
+    def __init__(self, stop: str):
         """Retrieve the parameters for the service."""
-        params = {}
-        params['callback'] = ''
-        params['strLinea'] = ''
-        params['strParada'] = stop
-        return params
         
+        self.params['strLinea'] = ''
+        self.params['strParada'] = stop
+
+    def GetURL(self) -> str:
+        return _RESOURCE + TIMETABLE_SERVICE
