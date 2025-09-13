@@ -18,9 +18,10 @@ from typing import Any, Optional
 class BizkaibusAPI:
     """The class for handling the data retrieval."""
 
-    def __init__(self, stop: str):
+    def __init__(self, language: BizkaibusLanguages, stop: str):
         """Initialize the data object."""
         self.stop = stop
+        self.language = language
         
     async def TestConnection(self) -> bool: 
         """Test the API."""
@@ -81,7 +82,8 @@ class BizkaibusAPI:
 
             for stops in root2['Paradas']:
                 if stops['PR_CODRED'] == self.stop:
-                    lines[line_Id] = BizkaibusLine(line_Id, root2['Descripcion'])
+                    incident = self.__getIncidentString(line, self.language)
+                    lines[line_Id] = BizkaibusLine(line_Id, root2['Descripcion'], incident)
                     break
 
         return list(lines.values())
@@ -99,6 +101,14 @@ class BizkaibusAPI:
         else:
             return timetable.arrivals[line]
         
+    def __getIncidentString(self, lineInfo, currentLanguage: BizkaibusLanguages) -> str | None:
+        if currentLanguage == BizkaibusLanguages.EU:
+            return lineInfo['IncidenciaEuskera']
+        elif currentLanguage == BizkaibusLanguages.ES:
+            return lineInfo['IncidenciaCastellano']
+        else:
+            return None
+
     async def __getTimetable(self) -> Optional[BizkaibusTimetable]:
         timetableParam = TimetableServiceParam(self.stop)
         result = await self.__getRequest(timetableParam)
