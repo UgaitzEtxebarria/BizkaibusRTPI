@@ -4,16 +4,18 @@ import xml.etree.ElementTree as ET
 import json
 import aiohttp
 
-from bizkaibus.Model.BizkaibusArrival import BizkaibusArrival
-from bizkaibus.Model.BizkaibusArrivalTime import BizkaibusArrivalTime
-from bizkaibus.Model.BizkaibusLine import BizkaibusLine
-from bizkaibus.Model.BizkaibusTimetable import BizkaibusTimetable
-from bizkaibus.ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam
-from bizkaibus.ServiceParams.LineItineraryServiceParam import LineItineraryServiceParam
-from bizkaibus.ServiceParams.LinesInTownServiceParam import LinesInTownServiceParam
-from bizkaibus.ServiceParams.TimetableServiceParam import TimetableServiceParam
-from bizkaibus.ServiceParams.StopInfoServiceParam import StopInfoServiceParam
+from Model.BizkaibusArrival import BizkaibusArrival
+from Model.BizkaibusArrivalTime import BizkaibusArrivalTime
+from Model.BizkaibusLanguages import BizkaibusLanguages
+from Model.BizkaibusLine import BizkaibusLine
+from Model.BizkaibusTimetable import BizkaibusTimetable
+from ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam
+from ServiceParams.LineItineraryServiceParam import LineItineraryServiceParam
+from ServiceParams.LinesInTownServiceParam import LinesInTownServiceParam
+from ServiceParams.TimetableServiceParam import TimetableServiceParam
+from ServiceParams.StopInfoServiceParam import StopInfoServiceParam
 from typing import Any, Optional
+
 
 class BizkaibusAPI:
     """The class for handling the data retrieval."""

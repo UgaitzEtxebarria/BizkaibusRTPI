@@ -1,4 +1,4 @@
-from bizkaibus.Model.BizkaibusArrival import BizkaibusArrival
+from Model.BizkaibusArrival import BizkaibusArrival
 
 class BizkaibusTimetable:
     """The class for handling the data retrieval."""
