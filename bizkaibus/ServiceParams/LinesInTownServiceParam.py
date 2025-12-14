@@ -1,4 +1,4 @@
-from ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam
+from .BizkaibusServiceParam import BizkaibusServiceParam
 from const import _RESOURCE, LINES_PER_TOWN_SERVICE
 
 class LinesInTownServiceParam(BizkaibusServiceParam):
