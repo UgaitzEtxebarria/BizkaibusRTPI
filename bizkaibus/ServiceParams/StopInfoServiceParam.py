@@ -1,4 +1,4 @@
-from ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam
+from .BizkaibusServiceParam import BizkaibusServiceParam
 from const import _RESOURCE, STOP_INFO_SERVICE
 
 class StopInfoServiceParam(BizkaibusServiceParam):
