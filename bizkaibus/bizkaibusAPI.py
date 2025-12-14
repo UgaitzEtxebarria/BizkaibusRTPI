@@ -4,16 +4,16 @@ import xml.etree.ElementTree as ET
 import json
 import aiohttp
 
-from Model.BizkaibusArrival import BizkaibusArrival
-from Model.BizkaibusArrivalTime import BizkaibusArrivalTime
-from Model.BizkaibusLanguages import BizkaibusLanguages
-from Model.BizkaibusLine import BizkaibusLine
-from Model.BizkaibusTimetable import BizkaibusTimetable
-from ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam
-from ServiceParams.LineItineraryServiceParam import LineItineraryServiceParam
-from ServiceParams.LinesInTownServiceParam import LinesInTownServiceParam
-from ServiceParams.TimetableServiceParam import TimetableServiceParam
-from ServiceParams.StopInfoServiceParam import StopInfoServiceParam
+from .Model.BizkaibusArrival import BizkaibusArrival
+from .Model.BizkaibusArrivalTime import BizkaibusArrivalTime
+from .Model.BizkaibusLanguages import BizkaibusLanguages
+from .Model.BizkaibusLine import BizkaibusLine
+from .Model.BizkaibusTimetable import BizkaibusTimetable
+from .ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam
+from .ServiceParams.LineItineraryServiceParam import LineItineraryServiceParam
+from .ServiceParams.LinesInTownServiceParam import LinesInTownServiceParam
+from .ServiceParams.TimetableServiceParam import TimetableServiceParam
+from .ServiceParams.StopInfoServiceParam import StopInfoServiceParam
 from typing import Any, Optional
 
 

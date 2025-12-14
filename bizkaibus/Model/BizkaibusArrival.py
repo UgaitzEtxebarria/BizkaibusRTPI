@@ -1,14 +1,19 @@
 
 from typing import Optional
-from Model.BizkaibusArrivalTime import BizkaibusArrivalTime
-from Model.BizkaibusLine import BizkaibusLine
+from .BizkaibusArrivalTime import BizkaibusArrivalTime
+from .BizkaibusLine import BizkaibusLine
 
 class BizkaibusArrival:
     line: BizkaibusLine
     nearestArrival: BizkaibusArrivalTime
     nextArrival: Optional[BizkaibusArrivalTime] = None
 
-    def __init__(self, line: BizkaibusLine, nearestArrival: BizkaibusArrivalTime, nextArrival: Optional[BizkaibusArrivalTime] = None):
+    def __init__(
+            self, 
+            line: BizkaibusLine, 
+            nearestArrival: BizkaibusArrivalTime, 
+            nextArrival: Optional[BizkaibusArrivalTime] = None
+            ):
         """Initialize the data object."""
         self.line = line
         self.nearestArrival = nearestArrival
