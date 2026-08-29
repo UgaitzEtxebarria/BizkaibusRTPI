@@ -1,5 +1,5 @@
 from .BizkaibusServiceParam import BizkaibusServiceParam
-from const import _RESOURCE, LINES_ITINERARY_SERVICE
+from ..const import _RESOURCE, LINES_ITINERARY_SERVICE
 
 class LineItineraryServiceParam(BizkaibusServiceParam):
 
