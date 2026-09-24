@@ -7,13 +7,13 @@ class BizkaibusArrivalTime:
         """Initialize the data object."""
         self.time = time
 
-    def GetUTC(self):
+    def get_utc(self):
         """Get the time in UTC format."""
         now = datetime.datetime.now(datetime.timezone.utc)
         time = (now + datetime.timedelta(minutes=int(self.time))).isoformat()
         return time
 
-    def GetAbsolute(self):
+    def get_absolute(self):
         """Get the time in absolute format."""
         now = datetime.datetime.now()
         time = (now + datetime.timedelta(minutes=int(self.time))).isoformat()

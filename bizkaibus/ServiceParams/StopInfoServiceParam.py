@@ -1,10 +1,13 @@
-from .BizkaibusServiceParam import BizkaibusServiceParam
+from .BizkaibusServiceParam import BizkaibusServiceParam, ResponseType
 from ..const import _RESOURCE, STOP_INFO_SERVICE
 
 class StopInfoServiceParam(BizkaibusServiceParam):
+    response_type = ResponseType.XML
 
     def __init__(self):
         """Retrieve the parameters for the service."""
+        super().__init__()
 
-    def GetURL(self) -> str:
+
+    def get_url(self) -> str:
         return _RESOURCE + STOP_INFO_SERVICE
