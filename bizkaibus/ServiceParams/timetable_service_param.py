@@ -1,5 +1,6 @@
-from .bizkaibus_service_param import BizkaibusServiceParam
 from ..const import _RESOURCE, TIMETABLE_SERVICE
+from .bizkaibus_service_param import BizkaibusServiceParam
+
 
 class TimetableServiceParam(BizkaibusServiceParam):
 

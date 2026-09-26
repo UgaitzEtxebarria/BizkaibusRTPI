@@ -1,5 +1,6 @@
-from .bizkaibus_service_param import BizkaibusServiceParam, ResponseType
 from ..const import _RESOURCE, STOP_INFO_SERVICE
+from .bizkaibus_service_param import BizkaibusServiceParam, ResponseType
+
 
 class StopInfoServiceParam(BizkaibusServiceParam):
     response_type = ResponseType.XML

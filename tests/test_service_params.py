@@ -11,13 +11,13 @@ from bizkaibus import (
     BizkaibusParseError,
 )
 from bizkaibus.const import _RESOURCE, TIMETABLE_SERVICE
-from bizkaibus.Model.BizkaibusArrival import BizkaibusArrival
-from bizkaibus.Model.BizkaibusArrivalTime import BizkaibusArrivalTime
-from bizkaibus.Model.BizkaibusLine import BizkaibusLine
-from bizkaibus.Model.BizkaibusTimetable import BizkaibusTimetable
-from bizkaibus.ServiceParams.BizkaibusServiceParam import ResponseType
-from bizkaibus.ServiceParams.StopInfoServiceParam import StopInfoServiceParam
-from bizkaibus.ServiceParams.TimetableServiceParam import TimetableServiceParam
+from bizkaibus.Model.bizkaibus_arrival import BizkaibusArrival
+from bizkaibus.Model.bizkaibus_arrival_time import BizkaibusArrivalTime
+from bizkaibus.Model.bizkaibus_line import BizkaibusLine
+from bizkaibus.Model.bizkaibus_timetable import BizkaibusTimetable
+from bizkaibus.ServiceParams.bizkaibus_service_param import ResponseType
+from bizkaibus.ServiceParams.stop_info_service_param import StopInfoServiceParam
+from bizkaibus.ServiceParams.timetable_service_param import TimetableServiceParam
 
 
 def test_timetable_service_param_exposes_compatible_api():

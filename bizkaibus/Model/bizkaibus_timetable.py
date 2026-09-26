@@ -1,5 +1,6 @@
 from .bizkaibus_arrival import BizkaibusArrival
 
+
 class BizkaibusTimetable:
     """The class for handling the data retrieval."""
     id: str = ''

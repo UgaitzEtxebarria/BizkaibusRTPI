@@ -1,5 +1,6 @@
 import datetime
 
+
 class BizkaibusArrivalTime:
     time: int = 0
 

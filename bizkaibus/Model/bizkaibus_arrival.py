@@ -1,4 +1,6 @@
 
+from __future__ import annotations
+
 from typing import Optional
 
 from .bizkaibus_arrival_time import BizkaibusArrivalTime
