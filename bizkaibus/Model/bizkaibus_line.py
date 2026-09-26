@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class BizkaibusLine:
     id: str = ""
     route: str = ""

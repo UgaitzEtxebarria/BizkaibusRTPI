@@ -1,5 +1,7 @@
 """Support for Bizkaibus, Biscay (Basque Country, Spain) Bus service."""
 
+from __future__ import annotations
+
 import asyncio
 import json
 import xml.etree.ElementTree as ET

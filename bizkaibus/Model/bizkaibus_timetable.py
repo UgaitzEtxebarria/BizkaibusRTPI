@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .bizkaibus_arrival import BizkaibusArrival
 
 
