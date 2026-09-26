@@ -1,11 +1,23 @@
-from bizkaibus import BizkaibusAPI, BizkaibusLanguages
+import asyncio
+from typing import cast
+
+import aiohttp
+import pytest
+
+from bizkaibus import (
+    BizkaibusAPI,
+    BizkaibusConnectionError,
+    BizkaibusLanguages,
+    BizkaibusParseError,
+)
+from bizkaibus.const import _RESOURCE, TIMETABLE_SERVICE
 from bizkaibus.Model.BizkaibusArrival import BizkaibusArrival
 from bizkaibus.Model.BizkaibusArrivalTime import BizkaibusArrivalTime
 from bizkaibus.Model.BizkaibusLine import BizkaibusLine
 from bizkaibus.Model.BizkaibusTimetable import BizkaibusTimetable
 from bizkaibus.ServiceParams.BizkaibusServiceParam import ResponseType
+from bizkaibus.ServiceParams.StopInfoServiceParam import StopInfoServiceParam
 from bizkaibus.ServiceParams.TimetableServiceParam import TimetableServiceParam
-from bizkaibus.const import _RESOURCE, TIMETABLE_SERVICE
 
 
 def test_timetable_service_param_exposes_compatible_api():
@@ -50,3 +62,66 @@ def test_arrival_time_exposes_pythonic_minutes_alias():
     time_value = BizkaibusArrivalTime(12)
     assert time_value.minutes == 12
     assert time_value.time == 12
+
+
+@pytest.mark.asyncio
+async def test_request_timeout_raises_bizkaibus_connection_error():
+    class TimedOutRequest:
+        async def __aenter__(self):
+            raise asyncio.TimeoutError
+
+        async def __aexit__(self, exc_type, exc_value, traceback):
+            return False
+
+    class Session:
+        closed = False
+
+        def get(self, url, params):
+            return TimedOutRequest()
+
+    api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+    api._session = cast(aiohttp.ClientSession, Session())
+
+    with pytest.raises(BizkaibusConnectionError, match="timed out"):
+        await getattr(api, "_BizkaibusAPI__get_raw_request")(StopInfoServiceParam())
+
+
+@pytest.mark.asyncio
+async def test_malformed_xml_raises_bizkaibus_parse_error(monkeypatch):
+    async def malformed_response(service_param):
+        return "<response>"
+
+    api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_raw_request", malformed_response)
+
+    with pytest.raises(BizkaibusParseError, match="Invalid XML"):
+        await getattr(api, "_BizkaibusAPI__get_xml")(StopInfoServiceParam())
+
+
+@pytest.mark.asyncio
+async def test_malformed_json_raises_bizkaibus_parse_error(monkeypatch):
+    async def malformed_response(service_param):
+        return "xnot-jsonxx"
+
+    api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_raw_request", malformed_response)
+
+    with pytest.raises(BizkaibusParseError, match="Invalid JSON"):
+        await getattr(api, "_BizkaibusAPI__get_json")(TimetableServiceParam("0296"))
+
+
+@pytest.mark.asyncio
+async def test_unexpected_lines_response_raises_bizkaibus_parse_error(monkeypatch):
+    api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+
+    async def location():
+        return "province", "municipality"
+
+    async def malformed_response(service_param):
+        return {}
+
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_location", location)
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_response", malformed_response)
+
+    with pytest.raises(BizkaibusParseError, match="Invalid lines response"):
+        await api.get_lines_on_stop()

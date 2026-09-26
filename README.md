@@ -37,13 +37,27 @@ async def main():
 
 ## Error handling
 
+The client raises the following exceptions, all available from `bizkaibus`:
+
+- `BizkaibusConnectionError` when a request times out, cannot connect, receives a non-200 HTTP status, or the service reports a failure.
+- `BizkaibusStopNotFoundError` when the requested stop does not exist.
+- `BizkaibusParseError` when the service returns malformed or unexpected data.
+
 ```python
+from bizkaibus import (
+    BizkaibusConnectionError,
+    BizkaibusParseError,
+    BizkaibusStopNotFoundError,
+)
+
 try:
     api = await BizkaibusAPI.create(BizkaibusLanguages.EU, "0296")
-except ValueError:
-    print("The API could not be initialized")
-except ConnectionError:
-    print("Connection error while contacting the Bizkaibus service")
+except BizkaibusStopNotFoundError:
+    print("The requested stop does not exist")
+except BizkaibusConnectionError:
+    print("Could not contact the Bizkaibus service")
+except BizkaibusParseError:
+    print("The Bizkaibus service returned an invalid response")
 ```
 
 ## Features
