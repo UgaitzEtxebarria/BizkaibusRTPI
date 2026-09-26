@@ -310,7 +310,12 @@ async def test_stop_not_found_raises_when_location_missing(monkeypatch):
         return type(
             "Response",
             (),
-            {"text": "<Paradas><Registro CODIGOREDUCIDOPARADA='1111' PROVINCIA='48' MUNICIPIO='Bilbao'/></Paradas>"},
+            {
+                "text": (
+                    "<Paradas><Registro CODIGOREDUCIDOPARADA='1111' "
+                    "PROVINCIA='48' MUNICIPIO='Bilbao'/></Paradas>"
+                )
+            },
         )()
 
     monkeypatch.setattr(api, "_BizkaibusAPI__get_response", fake_response)
