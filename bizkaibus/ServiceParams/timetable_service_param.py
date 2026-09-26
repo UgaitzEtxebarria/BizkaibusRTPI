@@ -7,8 +7,8 @@ class TimetableServiceParam(BizkaibusServiceParam):
     def __init__(self, stop: str):
         """Retrieve the parameters for the service."""
         super().__init__()
-        self.params['strLinea'] = ''
-        self.params['strParada'] = stop
+        self.params["strLinea"] = ""
+        self.params["strParada"] = stop
 
     def get_url(self) -> str:
         return _RESOURCE + TIMETABLE_SERVICE

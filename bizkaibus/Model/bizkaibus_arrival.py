@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from typing import Optional
@@ -13,11 +12,11 @@ class BizkaibusArrival:
     next_arrival: Optional[BizkaibusArrivalTime] = None
 
     def __init__(
-            self, 
-            line: BizkaibusLine, 
-            nearest_arrival: BizkaibusArrivalTime, 
-            next_arrival: Optional[BizkaibusArrivalTime] = None
-            ):
+        self,
+        line: BizkaibusLine,
+        nearest_arrival: BizkaibusArrivalTime,
+        next_arrival: Optional[BizkaibusArrivalTime] = None,
+    ):
         """Initialize the data object."""
         self.line = line
         self.nearest_arrival = nearest_arrival
@@ -25,7 +24,4 @@ class BizkaibusArrival:
 
     def __str__(self):
         """Return a string representation of the object."""
-        return (
-            f"Line: {self.line}, nearest: {self.nearest_arrival}, "
-            f"next: {self.next_arrival}"
-        )
+        return f"Line: {self.line}, nearest: {self.nearest_arrival}, " f"next: {self.next_arrival}"

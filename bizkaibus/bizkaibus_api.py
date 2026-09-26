@@ -35,11 +35,7 @@ class BizkaibusAPI:
         self._session: Optional[aiohttp.ClientSession] = None
 
     @classmethod
-    async def create(
-        cls,
-        language: BizkaibusLanguages,
-        stop: str
-    ) -> "BizkaibusAPI":
+    async def create(cls, language: BizkaibusLanguages, stop: str) -> "BizkaibusAPI":
         api = cls(language, stop)
 
         try:
@@ -60,13 +56,13 @@ class BizkaibusAPI:
         """Close the HTTP session used by this client."""
         if self._session is not None and not self._session.closed:
             await self._session.close()
-        
-    async def test_connection(self) -> bool: 
+
+    async def test_connection(self) -> bool:
         """Test the API."""
         timetable_param = TimetableServiceParam(self.stop)
         result = await self.__get_response(timetable_param)
         return result is not None
-    
+
     async def get_lines_on_stop(self) -> list[BizkaibusLine]:
         """Retrieve the information of a bus on stop."""
 
@@ -82,8 +78,8 @@ class BizkaibusAPI:
             return []
 
         try:
-            root = result['Consulta']
-            line_records = root['Lineas']
+            root = result["Consulta"]
+            line_records = root["Lineas"]
             if not isinstance(line_records, list):
                 raise BizkaibusParseError("Unexpected line list in Bizkaibus response")
         except (KeyError, TypeError) as exc:
@@ -93,9 +89,9 @@ class BizkaibusAPI:
 
         for line in line_records:
             try:
-                route = line['NumeroRuta']
-                line_id = line['CodigoLinea']
-                direction = line['Sentido']
+                route = line["NumeroRuta"]
+                line_id = line["CodigoLinea"]
+                direction = line["Sentido"]
             except (KeyError, TypeError) as exc:
                 raise BizkaibusParseError("Invalid line record in Bizkaibus response") from exc
 
@@ -108,9 +104,9 @@ class BizkaibusAPI:
             if itinerary_response is None:
                 continue
             try:
-                itinerary_stops = itinerary_response['Consulta']
-                stop_records = itinerary_stops['Paradas']
-                route_name = itinerary_stops['Descripcion']
+                itinerary_stops = itinerary_response["Consulta"]
+                stop_records = itinerary_stops["Paradas"]
+                route_name = itinerary_stops["Descripcion"]
                 if not isinstance(stop_records, list):
                     raise BizkaibusParseError("Unexpected stop list in itinerary response")
             except (KeyError, TypeError) as exc:
@@ -118,7 +114,7 @@ class BizkaibusAPI:
 
             try:
                 for stop in stop_records:
-                    if stop['PR_CODRED'] == self.stop:
+                    if stop["PR_CODRED"] == self.stop:
                         incident = self.__get_incident_string(line, self.language)
                         lines[line_id] = BizkaibusLine(line_id, route_name, incident)
                         break
@@ -154,37 +150,30 @@ class BizkaibusAPI:
         except ET.ParseError as exc:
             raise BizkaibusParseError("Invalid XML in stop information response") from exc
 
-        records = consulta.findall('Registro')
+        records = consulta.findall("Registro")
         if not records:
             raise BizkaibusParseError("Stop information response contains no stop records")
 
         stop = next(
-            (
-                registro
-                for registro in records
-                if registro.get('CODIGOREDUCIDOPARADA') == self.stop
-            ),
+            (registro for registro in records if registro.get("CODIGOREDUCIDOPARADA") == self.stop),
             None,
         )
 
         if stop is None:
             raise BizkaibusStopNotFoundError(self.stop)
 
-        province = stop.get('PROVINCIA', '')
-        municipality = stop.get('MUNICIPIO', '')
+        province = stop.get("PROVINCIA", "")
+        municipality = stop.get("MUNICIPIO", "")
 
         return province, municipality
 
-        
     def __get_incident_string(self, lineInfo, currentLanguage: BizkaibusLanguages) -> str | None:
         if currentLanguage == BizkaibusLanguages.EU:
-            return lineInfo['IncidenciaEuskera']
+            return lineInfo["IncidenciaEuskera"]
         elif currentLanguage == BizkaibusLanguages.ES:
-            return lineInfo['IncidenciaCastellano']
+            return lineInfo["IncidenciaCastellano"]
         else:
             return None
-
-    
 
     async def __get_timetable(self) -> Optional[BizkaibusTimetable]:
         timetable_param = TimetableServiceParam(self.stop)
@@ -193,28 +182,28 @@ class BizkaibusAPI:
             return None
 
         try:
-            root = ET.fromstring(result['Resultado'])
+            root = ET.fromstring(result["Resultado"])
         except (ET.ParseError, KeyError, TypeError) as exc:
             raise BizkaibusParseError("Invalid timetable response from Bizkaibus") from exc
 
-        stop_name = root.find('DenominacionParada')
+        stop_name = root.find("DenominacionParada")
         stop_name_str = stop_name.text if stop_name is not None else None
         timetable = BizkaibusTimetable(self.stop, stop_name_str)
 
         for childBus in root.findall("PasoParada"):
-            linea_elem = childBus.find('linea')
-            ruta_elem = childBus.find('ruta')
-            e1_elem = childBus.find('e1')
-            e2_elem = childBus.find('e2')
+            linea_elem = childBus.find("linea")
+            ruta_elem = childBus.find("ruta")
+            e1_elem = childBus.find("e1")
+            e2_elem = childBus.find("e2")
 
             route = linea_elem.text if linea_elem is not None else None
             route_name = ruta_elem.text if ruta_elem is not None else None
-            minutes1 = e1_elem.find('minutos') if e1_elem is not None else None
+            minutes1 = e1_elem.find("minutos") if e1_elem is not None else None
             time1 = minutes1.text if minutes1 is not None else None
-            minutes2 = e2_elem.find('minutos') if e2_elem is not None else None
+            minutes2 = e2_elem.find("minutos") if e2_elem is not None else None
             time2 = minutes2.text if minutes2 is not None else None
 
-            if (route_name is not None and time1 is not None and route is not None):
+            if route_name is not None and time1 is not None and route is not None:
                 try:
                     if time2 is None:
                         stop_arrival = BizkaibusArrival(
@@ -249,13 +238,13 @@ class BizkaibusAPI:
         except (json.JSONDecodeError, TypeError) as exc:
             raise BizkaibusParseError("Invalid JSON response from Bizkaibus") from exc
 
-        if str(result['STATUS']) != 'OK':
+        if str(result["STATUS"]) != "OK":
             raise BizkaibusConnectionError(
                 f"Bizkaibus service returned status {result['STATUS']!r}"
             )
-        
+
         return result
-    
+
     async def __get_xml(self, service_param: BizkaibusServiceParam) -> Optional[Element]:
         response = await self.__get_raw_request(service_param)
 
@@ -280,9 +269,7 @@ class BizkaibusAPI:
 
                 return await response.text()
         except asyncio.TimeoutError as exc:
-            raise BizkaibusConnectionError(
-                f"Bizkaibus request to {url} timed out"
-            ) from exc
+            raise BizkaibusConnectionError(f"Bizkaibus request to {url} timed out") from exc
         except aiohttp.ClientError as exc:
             raise BizkaibusConnectionError(
                 f"Could not complete Bizkaibus request to {url}: {exc}"

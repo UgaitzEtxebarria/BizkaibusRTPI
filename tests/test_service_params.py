@@ -29,7 +29,6 @@ def test_timetable_service_param_exposes_compatible_api():
     assert service.build_params()["callback"] == ""
 
 
-
 def test_package_exports_public_api():
     assert BizkaibusAPI is not None
     assert BizkaibusLanguages is not None

@@ -9,6 +9,5 @@ class StopInfoServiceParam(BizkaibusServiceParam):
         """Retrieve the parameters for the service."""
         super().__init__()
 
-
     def get_url(self) -> str:
         return _RESOURCE + STOP_INFO_SERVICE
