@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from .ResponseType import ResponseType
+from .response_type import ResponseType
 
 class BizkaibusServiceParam(ABC):
     """Interface for handling service parameters."""

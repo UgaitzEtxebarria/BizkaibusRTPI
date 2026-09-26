@@ -1,4 +1,4 @@
-from .BizkaibusError import BizkaibusError
+from .bizkaibus_error import BizkaibusError
 
 
 class BizkaibusConnectionError(BizkaibusError):

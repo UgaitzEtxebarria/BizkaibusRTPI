@@ -13,16 +13,16 @@ from .Exceptions import (
     BizkaibusParseError,
     BizkaibusStopNotFoundError,
 )
-from .Model.BizkaibusArrival import BizkaibusArrival
-from .Model.BizkaibusArrivalTime import BizkaibusArrivalTime
-from .Model.BizkaibusLanguages import BizkaibusLanguages
-from .Model.BizkaibusLine import BizkaibusLine
-from .Model.BizkaibusTimetable import BizkaibusTimetable
-from .ServiceParams.BizkaibusServiceParam import BizkaibusServiceParam, ResponseType
-from .ServiceParams.LineItineraryServiceParam import LineItineraryServiceParam
-from .ServiceParams.LinesInTownServiceParam import LinesInTownServiceParam
-from .ServiceParams.StopInfoServiceParam import StopInfoServiceParam
-from .ServiceParams.TimetableServiceParam import TimetableServiceParam
+from .Model.bizkaibus_arrival import BizkaibusArrival
+from .Model.bizkaibus_arrival_time import BizkaibusArrivalTime
+from .Model.bizkaibus_languages import BizkaibusLanguages
+from .Model.bizkaibus_line import BizkaibusLine
+from .Model.bizkaibus_timetable import BizkaibusTimetable
+from .ServiceParams.bizkaibus_service_param import BizkaibusServiceParam, ResponseType
+from .ServiceParams.line_itinerary_service_param import LineItineraryServiceParam
+from .ServiceParams.lines_in_town_service_param import LinesInTownServiceParam
+from .ServiceParams.stop_info_service_param import StopInfoServiceParam
+from .ServiceParams.timetable_service_param import TimetableServiceParam
 
 
 class BizkaibusAPI:

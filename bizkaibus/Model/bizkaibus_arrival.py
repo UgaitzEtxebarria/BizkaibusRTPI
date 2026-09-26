@@ -1,8 +1,8 @@
 
 from typing import Optional
 
-from .BizkaibusArrivalTime import BizkaibusArrivalTime
-from .BizkaibusLine import BizkaibusLine
+from .bizkaibus_arrival_time import BizkaibusArrivalTime
+from .bizkaibus_line import BizkaibusLine
 
 
 class BizkaibusArrival:
