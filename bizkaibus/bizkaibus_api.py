@@ -37,11 +37,20 @@ class BizkaibusAPI:
         self.stop = stop
         self.language = language
         self._session: Optional[aiohttp.ClientSession] = None
+        self._owns_session = True
         self._location: tuple[str, str] | None = None
 
     @classmethod
-    async def create(cls, language: BizkaibusLanguages, stop: str) -> "BizkaibusAPI":
+    async def create(
+        cls,
+        language: BizkaibusLanguages,
+        stop: str,
+        session: Optional[aiohttp.ClientSession] = None,
+    ) -> "BizkaibusAPI":
         api = cls(language, stop)
+        if session is not None:
+            api._session = session
+            api._owns_session = False
 
         try:
             await api.__get_location()
@@ -61,7 +70,7 @@ class BizkaibusAPI:
         """Close the HTTP session used by this client."""
         session = self._session
         self._session = None
-        if session is not None and not session.closed:
+        if self._owns_session and session is not None and not session.closed:
             await session.close()
 
     async def test_connection(self) -> bool:
@@ -286,6 +295,7 @@ class BizkaibusAPI:
         if self._session is None or self._session.closed:
             timeout = aiohttp.ClientTimeout(total=20)
             self._session = aiohttp.ClientSession(timeout=timeout)
+            self._owns_session = True
 
         params = service_param.build_params()
         url = service_param.get_url()

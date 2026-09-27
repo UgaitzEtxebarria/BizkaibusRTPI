@@ -160,6 +160,30 @@ async def test_create_and_context_manager_manage_session(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_create_accepts_external_session_without_closing_it(monkeypatch):
+    class Session:
+        closed = False
+
+        async def close(self):
+            self.closed = True
+
+    session = Session()
+    original_session = cast(aiohttp.ClientSession, session)
+
+    async def fake_location(api):
+        assert api._session is original_session
+        return ("48", "Bilbao")
+
+    monkeypatch.setattr(BizkaibusAPI, "_BizkaibusAPI__get_location", fake_location)
+
+    api = await BizkaibusAPI.create(BizkaibusLanguages.EU, "0296", session=original_session)
+    await api.close()
+
+    assert session.closed is False
+    assert api._session is None
+
+
+@pytest.mark.asyncio
 async def test_create_closes_session_when_cancelled(monkeypatch):
     class AsyncSession:
         closed = False
