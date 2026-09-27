@@ -160,6 +160,31 @@ async def test_create_and_context_manager_manage_session(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_create_closes_session_when_cancelled(monkeypatch):
+    class AsyncSession:
+        closed = False
+
+        async def close(self):
+            self.closed = True
+
+    session = AsyncSession()
+    instances = []
+
+    async def cancelled_location(api):
+        api._session = cast(aiohttp.ClientSession, session)
+        instances.append(api)
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr(BizkaibusAPI, "_BizkaibusAPI__get_location", cancelled_location)
+
+    with pytest.raises(asyncio.CancelledError):
+        await BizkaibusAPI.create(BizkaibusLanguages.EU, "0296")
+
+    assert session.closed
+    assert instances[0]._session is None
+
+
+@pytest.mark.asyncio
 async def test_request_recreates_closed_session(monkeypatch):
     class Response:
         status = 200

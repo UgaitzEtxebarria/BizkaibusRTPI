@@ -45,7 +45,7 @@ class BizkaibusAPI:
 
         try:
             await api.__get_location()
-        except Exception:
+        except BaseException:
             await api.close()
             raise
 
