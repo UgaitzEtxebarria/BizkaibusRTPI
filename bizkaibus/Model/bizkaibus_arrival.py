@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from .bizkaibus_arrival_time import BizkaibusArrivalTime
 from .bizkaibus_line import BizkaibusLine
 
@@ -9,13 +7,13 @@ from .bizkaibus_line import BizkaibusLine
 class BizkaibusArrival:
     line: BizkaibusLine
     nearest_arrival: BizkaibusArrivalTime
-    next_arrival: Optional[BizkaibusArrivalTime] = None
+    next_arrival: BizkaibusArrivalTime | None = None
 
     def __init__(
         self,
         line: BizkaibusLine,
         nearest_arrival: BizkaibusArrivalTime,
-        next_arrival: Optional[BizkaibusArrivalTime] = None,
+        next_arrival: BizkaibusArrivalTime | None = None,
     ):
         """Initialize the data object."""
         self.line = line

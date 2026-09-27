@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import xml.etree.ElementTree as ET
-from typing import Any, Optional
+from typing import Any
 from xml.etree.ElementTree import Element
 
 import aiohttp
@@ -36,7 +36,7 @@ class BizkaibusAPI:
         """Initialize the data object."""
         self.stop = stop
         self.language = language
-        self._session: Optional[aiohttp.ClientSession] = None
+        self._session: aiohttp.ClientSession | None = None
         self._owns_session = True
         self._location: tuple[str, str] | None = None
 
@@ -45,7 +45,7 @@ class BizkaibusAPI:
         cls,
         language: BizkaibusLanguages,
         stop: str,
-        session: Optional[aiohttp.ClientSession] = None,
+        session: aiohttp.ClientSession | None = None,
     ) -> "BizkaibusAPI":
         api = cls(language, stop)
         if session is not None:
@@ -158,11 +158,11 @@ class BizkaibusAPI:
 
         return lines
 
-    async def get_timetable(self) -> Optional[BizkaibusTimetable]:
+    async def get_timetable(self) -> BizkaibusTimetable | None:
         """Retrieve the information of a stop arrivals."""
         return await self.__get_timetable()
 
-    async def get_next_arrivals(self, line: str) -> Optional[BizkaibusArrival]:
+    async def get_next_arrivals(self, line: str) -> BizkaibusArrival | None:
         """Retrieve the information of a bus on stop."""
         timetable = await self.__get_timetable()
 
@@ -213,7 +213,7 @@ class BizkaibusAPI:
         else:
             return None
 
-    async def __get_timetable(self) -> Optional[BizkaibusTimetable]:
+    async def __get_timetable(self) -> BizkaibusTimetable | None:
         timetable_param = TimetableServiceParam(self.stop)
         result = await self.__get_response(timetable_param)
         if result is None:
@@ -265,7 +265,7 @@ class BizkaibusAPI:
             return await self.__get_json(service_param)
         return await self.__get_xml(service_param)
 
-    async def __get_json(self, service_param: BizkaibusServiceParam) -> Optional[dict[str, Any]]:
+    async def __get_json(self, service_param: BizkaibusServiceParam) -> dict[str, Any] | None:
         string = await self.__get_raw_request(service_param)
 
         try:
@@ -283,7 +283,7 @@ class BizkaibusAPI:
 
         return result
 
-    async def __get_xml(self, service_param: BizkaibusServiceParam) -> Optional[Element]:
+    async def __get_xml(self, service_param: BizkaibusServiceParam) -> Element | None:
         response = await self.__get_raw_request(service_param)
 
         try:
