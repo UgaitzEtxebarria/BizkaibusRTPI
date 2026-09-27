@@ -136,10 +136,7 @@ class BizkaibusAPI:
 
         line_ids = list(unique_lines)
         results = await asyncio.gather(
-            *(
-                get_line_for_stop(line_id, *unique_lines[line_id])
-                for line_id in line_ids
-            ),
+            *(get_line_for_stop(line_id, *unique_lines[line_id]) for line_id in line_ids),
             return_exceptions=True,
         )
 
