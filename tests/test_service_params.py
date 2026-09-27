@@ -239,6 +239,99 @@ async def test_get_lines_on_stop_parses_valid_response(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_lines_on_stop_checks_duplicate_line_ids_sequentially(monkeypatch):
+    api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+    line_records = [
+        {
+            "NumeroRuta": f"Ruta {index}",
+            "CodigoLinea": "A3211",
+            "Sentido": str(index),
+            "IncidenciaEuskera": f"Incidencia {index}",
+        }
+        for index in range(1, 4)
+    ]
+    requested_routes = []
+
+    async def fake_location():
+        return ("48", "Bilbao")
+
+    async def fake_response(service_param):
+        if isinstance(service_param, LinesInTownServiceParam):
+            return {"Consulta": {"Lineas": line_records}}
+        if isinstance(service_param, LineItineraryServiceParam):
+            route = service_param.build_params()["sNumeroRuta"]
+            requested_routes.append(route)
+            stop_records = [{"PR_CODRED": "0000"}]
+            if route == "Ruta 2":
+                stop_records.append({"PR_CODRED": "0296"})
+            return {
+                "Consulta": {
+                    "Paradas": stop_records,
+                    "Descripcion": f"Itinerario {route}",
+                }
+            }
+        return None
+
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_location", fake_location)
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_response", fake_response)
+
+    lines = await api.get_lines_on_stop()
+
+    assert requested_routes == ["Ruta 1", "Ruta 2"]
+    assert len(lines) == 1
+    assert lines[0].id == "A3211"
+    assert lines[0].route == "Itinerario Ruta 2"
+    assert lines[0].incident == "Incidencia 2"
+
+
+@pytest.mark.asyncio
+async def test_get_lines_on_stop_prioritizes_line_ids_with_more_records(monkeypatch):
+    api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+    line_records = [
+        {
+            "NumeroRuta": "Ruta B",
+            "CodigoLinea": "B100",
+            "Sentido": "1",
+            "IncidenciaEuskera": "",
+        },
+        *[
+            {
+                "NumeroRuta": f"Ruta A {index}",
+                "CodigoLinea": "A3211",
+                "Sentido": str(index),
+                "IncidenciaEuskera": "",
+            }
+            for index in range(1, 4)
+        ],
+    ]
+    requested_line_ids = []
+
+    async def fake_location():
+        return ("48", "Bilbao")
+
+    async def fake_response(service_param):
+        if isinstance(service_param, LinesInTownServiceParam):
+            return {"Consulta": {"Lineas": line_records}}
+        if isinstance(service_param, LineItineraryServiceParam):
+            requested_line_ids.append(service_param.line_id)
+            return {
+                "Consulta": {
+                    "Paradas": [{"PR_CODRED": "0296"}],
+                    "Descripcion": service_param.build_params()["sNumeroRuta"],
+                }
+            }
+        return None
+
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_location", fake_location)
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_response", fake_response)
+
+    lines = await api.get_lines_on_stop()
+
+    assert requested_line_ids == ["A3211", "B100"]
+    assert [line.id for line in lines] == ["A3211", "B100"]
+
+
+@pytest.mark.asyncio
 async def test_location_is_cached(monkeypatch):
     api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
     response_count = 0

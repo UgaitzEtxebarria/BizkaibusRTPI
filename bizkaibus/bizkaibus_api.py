@@ -85,8 +85,7 @@ class BizkaibusAPI:
             return []
 
         try:
-            root = result["Consulta"]
-            line_records = root["Lineas"]
+            line_records = result["Consulta"]["Lineas"]
             if not isinstance(line_records, list):
                 raise BizkaibusParseError("Unexpected line list in Bizkaibus response")
         except (KeyError, TypeError) as exc:
@@ -102,41 +101,42 @@ class BizkaibusAPI:
             except (KeyError, TypeError) as exc:
                 raise BizkaibusParseError("Invalid line record in Bizkaibus response") from exc
 
-            if line_id in unique_lines:
-                continue
+            unique_lines.setdefault(line_id, []).append((line, route, direction))
 
-            unique_lines[line_id] = (line, route, direction)
-
+        unique_lines = dict(
+            sorted(unique_lines.items(), key=lambda item: len(item[1]), reverse=True)
+        )
         semaphore = asyncio.Semaphore(self._MAX_CONCURRENT_ITINERARY_REQUESTS)
 
-        async def get_line_for_stop(line_id, line_info, route, direction):
-            itinerary = LineItineraryServiceParam(line_id, route, direction)
-            async with semaphore:
-                itinerary_response = await self.__get_response(itinerary)
-            if itinerary_response is None:
-                return None
-            try:
-                itinerary_stops = itinerary_response["Consulta"]
-                stop_records = itinerary_stops["Paradas"]
-                route_name = itinerary_stops["Descripcion"]
-                if not isinstance(stop_records, list):
-                    raise BizkaibusParseError("Unexpected stop list in itinerary response")
-            except (KeyError, TypeError) as exc:
-                raise BizkaibusParseError("Invalid itinerary response from Bizkaibus") from exc
+        async def get_line_for_stop(line_id, line_variants):
+            for line_info, route, direction in line_variants:
+                itinerary = LineItineraryServiceParam(line_id, route, direction)
+                async with semaphore:
+                    itinerary_response = await self.__get_response(itinerary)
+                if itinerary_response is None:
+                    continue
+                try:
+                    itinerary_stops = itinerary_response["Consulta"]
+                    stop_records = itinerary_stops["Paradas"]
+                    route_name = itinerary_stops["Descripcion"]
+                    if not isinstance(stop_records, list):
+                        raise BizkaibusParseError("Unexpected stop list in itinerary response")
+                except (KeyError, TypeError) as exc:
+                    raise BizkaibusParseError("Invalid itinerary response from Bizkaibus") from exc
 
-            try:
-                for stop in stop_records:
-                    if stop["PR_CODRED"] == self.stop:
-                        incident = self.__get_incident_string(line_info, self.language)
-                        return BizkaibusLine(line_id, route_name, incident)
-            except (KeyError, TypeError) as exc:
-                raise BizkaibusParseError("Invalid stop record in itinerary response") from exc
+                try:
+                    for stop in stop_records:
+                        if stop["PR_CODRED"] == self.stop:
+                            incident = self.__get_incident_string(line_info, self.language)
+                            return BizkaibusLine(line_id, route_name, incident)
+                except (KeyError, TypeError) as exc:
+                    raise BizkaibusParseError("Invalid stop record in itinerary response") from exc
 
             return None
 
         line_ids = list(unique_lines)
         results = await asyncio.gather(
-            *(get_line_for_stop(line_id, *unique_lines[line_id]) for line_id in line_ids),
+            *(get_line_for_stop(line_id, unique_lines[line_id]) for line_id in line_ids),
             return_exceptions=True,
         )
 
