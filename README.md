@@ -19,8 +19,9 @@ from bizkaibus.Model.BizkaibusLanguages import BizkaibusLanguages
 
 async def main():
     api = await BizkaibusAPI.create(BizkaibusLanguages.EU, "0296")
-    timetable = await api.get_timetable()
-    print(timetable)
+    async with api:
+        timetable = await api.get_timetable()
+        print(timetable)
 
 asyncio.run(main())
 ```
@@ -30,9 +31,10 @@ asyncio.run(main())
 ```python
 async def main():
     api = await BizkaibusAPI.create(BizkaibusLanguages.ES, "0296")
-    lines = await api.get_lines_on_stop()
-    for line in lines:
-        print(line)
+    async with api:
+        lines = await api.get_lines_on_stop()
+        for line in lines:
+            print(line)
 ```
 
 ## Error handling
@@ -52,6 +54,8 @@ from bizkaibus import (
 
 try:
     api = await BizkaibusAPI.create(BizkaibusLanguages.EU, "0296")
+    async with api:
+        timetable = await api.get_timetable()
 except BizkaibusStopNotFoundError:
     print("The requested stop does not exist")
 except BizkaibusConnectionError:

@@ -30,11 +30,14 @@ from .ServiceParams.timetable_service_param import TimetableServiceParam
 class BizkaibusAPI:
     """The class for handling the data retrieval."""
 
+    _MAX_CONCURRENT_ITINERARY_REQUESTS = 5
+
     def __init__(self, language: BizkaibusLanguages, stop: str):
         """Initialize the data object."""
         self.stop = stop
         self.language = language
         self._session: Optional[aiohttp.ClientSession] = None
+        self._location: tuple[str, str] | None = None
 
     @classmethod
     async def create(cls, language: BizkaibusLanguages, stop: str) -> "BizkaibusAPI":
@@ -56,8 +59,10 @@ class BizkaibusAPI:
 
     async def close(self) -> None:
         """Close the HTTP session used by this client."""
-        if self._session is not None and not self._session.closed:
-            await self._session.close()
+        session = self._session
+        self._session = None
+        if session is not None and not session.closed:
+            await session.close()
 
     async def test_connection(self) -> bool:
         """Test the API."""
@@ -87,7 +92,7 @@ class BizkaibusAPI:
         except (KeyError, TypeError) as exc:
             raise BizkaibusParseError("Invalid lines response from Bizkaibus") from exc
 
-        lines = {}
+        unique_lines = {}
 
         for line in line_records:
             try:
@@ -97,14 +102,19 @@ class BizkaibusAPI:
             except (KeyError, TypeError) as exc:
                 raise BizkaibusParseError("Invalid line record in Bizkaibus response") from exc
 
-            if line_id in lines:
+            if line_id in unique_lines:
                 continue
 
+            unique_lines[line_id] = (line, route, direction)
+
+        semaphore = asyncio.Semaphore(self._MAX_CONCURRENT_ITINERARY_REQUESTS)
+
+        async def get_line_for_stop(line_id, line_info, route, direction):
             itinerary = LineItineraryServiceParam(line_id, route, direction)
-
-            itinerary_response = await self.__get_response(itinerary)
+            async with semaphore:
+                itinerary_response = await self.__get_response(itinerary)
             if itinerary_response is None:
-                continue
+                return None
             try:
                 itinerary_stops = itinerary_response["Consulta"]
                 stop_records = itinerary_stops["Paradas"]
@@ -117,13 +127,30 @@ class BizkaibusAPI:
             try:
                 for stop in stop_records:
                     if stop["PR_CODRED"] == self.stop:
-                        incident = self.__get_incident_string(line, self.language)
-                        lines[line_id] = BizkaibusLine(line_id, route_name, incident)
-                        break
+                        incident = self.__get_incident_string(line_info, self.language)
+                        return BizkaibusLine(line_id, route_name, incident)
             except (KeyError, TypeError) as exc:
                 raise BizkaibusParseError("Invalid stop record in itinerary response") from exc
 
-        return list(lines.values())
+            return None
+
+        line_ids = list(unique_lines)
+        results = await asyncio.gather(
+            *(
+                get_line_for_stop(line_id, *unique_lines[line_id])
+                for line_id in line_ids
+            ),
+            return_exceptions=True,
+        )
+
+        lines = []
+        for result in results:
+            if isinstance(result, BaseException):
+                raise result
+            if result is not None:
+                lines.append(result)
+
+        return lines
 
     async def get_timetable(self) -> Optional[BizkaibusTimetable]:
         """Retrieve the information of a stop arrivals."""
@@ -139,6 +166,8 @@ class BizkaibusAPI:
             return timetable.arrivals[line]
 
     async def __get_location(self) -> tuple[str, str] | None:
+        if self._location is not None:
+            return self._location
 
         stop_info_param = StopInfoServiceParam()
         stop_response = await self.__get_response(stop_info_param)
@@ -167,7 +196,8 @@ class BizkaibusAPI:
         province = stop.get("PROVINCIA", "")
         municipality = stop.get("MUNICIPIO", "")
 
-        return province, municipality
+        self._location = (province, municipality)
+        return self._location
 
     def __get_incident_string(self, lineInfo, currentLanguage: BizkaibusLanguages) -> str | None:
         if currentLanguage == BizkaibusLanguages.EU:
@@ -256,7 +286,7 @@ class BizkaibusAPI:
             raise BizkaibusParseError("Invalid XML response from Bizkaibus") from exc
 
     async def __get_raw_request(self, service_param: BizkaibusServiceParam) -> str:
-        if self._session is None:
+        if self._session is None or self._session.closed:
             timeout = aiohttp.ClientTimeout(total=20)
             self._session = aiohttp.ClientSession(timeout=timeout)
 

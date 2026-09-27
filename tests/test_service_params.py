@@ -149,40 +149,81 @@ async def test_create_and_context_manager_manage_session(monkeypatch):
         async def close(self):
             self.closed = True
 
-    created._session = cast(aiohttp.ClientSession, AsyncSession())
+    session = AsyncSession()
+    created._session = cast(aiohttp.ClientSession, session)
     await created.__aexit__(None, None, None)
-    assert created._session is not None
+    assert session.closed
+    assert created._session is None
 
     async with BizkaibusAPI(BizkaibusLanguages.EU, "0296") as api_ctx:
         assert api_ctx.language == BizkaibusLanguages.EU
 
 
 @pytest.mark.asyncio
+async def test_request_recreates_closed_session(monkeypatch):
+    class Response:
+        status = 200
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_value, traceback):
+            return False
+
+        async def text(self):
+            return "response"
+
+    class Session:
+        def __init__(self, closed=False):
+            self.closed = closed
+
+        def get(self, url, params):
+            return Response()
+
+    replacement = Session()
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda timeout: replacement)
+
+    api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+    api._session = cast(aiohttp.ClientSession, Session(closed=True))
+
+    raw_request = getattr(api, "_BizkaibusAPI__get_raw_request")
+    response = await raw_request(TimetableServiceParam("0296"))
+
+    assert response == "response"
+    assert api._session is replacement
+
+
+@pytest.mark.asyncio
 async def test_get_lines_on_stop_parses_valid_response(monkeypatch):
     api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+    active_requests = 0
+    max_active_requests = 0
+    line_records = [
+        {
+            "NumeroRuta": f"Ruta {index}",
+            "CodigoLinea": f"L{index}",
+            "Sentido": "1",
+            "IncidenciaEuskera": "Varios",
+        }
+        for index in range(8)
+    ]
 
     async def fake_location():
         return ("48", "Bilbao")
 
     async def fake_response(service_param):
         if service_param.__class__.__name__ == "LinesInTownServiceParam":
-            return {
-                "Consulta": {
-                    "Lineas": [
-                        {
-                            "NumeroRuta": "Ruta 1",
-                            "CodigoLinea": "A",
-                            "Sentido": "1",
-                            "IncidenciaEuskera": "Varios",
-                        }
-                    ]
-                }
-            }
+            return {"Consulta": {"Lineas": line_records}}
         if service_param.__class__.__name__ == "LineItineraryServiceParam":
+            nonlocal active_requests, max_active_requests
+            active_requests += 1
+            max_active_requests = max(max_active_requests, active_requests)
+            await asyncio.sleep(0)
+            active_requests -= 1
             return {
                 "Consulta": {
                     "Paradas": [{"PR_CODRED": "0296"}],
-                    "Descripcion": "Ruta 1",
+                    "Descripcion": service_param.build_params()["sNumeroRuta"],
                 }
             }
         return None
@@ -191,9 +232,37 @@ async def test_get_lines_on_stop_parses_valid_response(monkeypatch):
     monkeypatch.setattr(api, "_BizkaibusAPI__get_response", fake_response)
 
     lines = await api.get_lines_on_stop()
-    assert len(lines) == 1
-    assert lines[0].id == "A"
+    assert len(lines) == len(line_records)
+    assert [line.id for line in lines] == [record["CodigoLinea"] for record in line_records]
     assert lines[0].incident == "Varios"
+    assert 1 < max_active_requests <= api._MAX_CONCURRENT_ITINERARY_REQUESTS
+
+
+@pytest.mark.asyncio
+async def test_location_is_cached(monkeypatch):
+    api = BizkaibusAPI(BizkaibusLanguages.EU, "0296")
+    response_count = 0
+
+    async def fake_response(_service_param):
+        nonlocal response_count
+        response_count += 1
+        return type(
+            "Response",
+            (),
+            {
+                "text": (
+                    "<Paradas><Registro CODIGOREDUCIDOPARADA='0296' "
+                    "PROVINCIA='48' MUNICIPIO='Bilbao'/></Paradas>"
+                )
+            },
+        )()
+
+    monkeypatch.setattr(api, "_BizkaibusAPI__get_response", fake_response)
+    get_location = getattr(api, "_BizkaibusAPI__get_location")
+
+    assert await get_location() == ("48", "Bilbao")
+    assert await get_location() == ("48", "Bilbao")
+    assert response_count == 1
 
 
 @pytest.mark.asyncio
