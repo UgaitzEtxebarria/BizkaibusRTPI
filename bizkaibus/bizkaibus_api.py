@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import xml.etree.ElementTree as ET
-from typing import Any
+from typing import Any, Self
 from xml.etree.ElementTree import Element
 
 import aiohttp
@@ -46,7 +46,7 @@ class BizkaibusAPI:
         language: BizkaibusLanguages,
         stop: str,
         session: aiohttp.ClientSession | None = None,
-    ) -> "BizkaibusAPI":
+    ) -> BizkaibusAPI:
         api = cls(language, stop)
         if session is not None:
             api._session = session
@@ -60,7 +60,7 @@ class BizkaibusAPI:
 
         return api
 
-    async def __aenter__(self) -> "BizkaibusAPI":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:

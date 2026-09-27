@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bizkaibus"
-version = "1.1.0"
+version = "1.1.1"
 description = "Online information for buses of Biscay bus services (Basque Country, Spain)."
 authors = [
     {name = "Ugaitz Etxebarria", email = "etxeba17@gmail.com"}
@@ -24,6 +24,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.optional-dependencies]
@@ -37,7 +39,7 @@ dev = [
 [project.urls]
 "Homepage" = "https://github.com/UgaitzEtxebarria/BizkaibusRTPI"
 "Source" = "https://github.com/UgaitzEtxebarria/BizkaibusRTPI"
-"Download" = "https://github.com/UgaitzEtxebarria/BizkaibusRTPI/archive/refs/tags/v1.1.0.tar.gz"
+"Download" = "https://github.com/UgaitzEtxebarria/BizkaibusRTPI/archive/refs/tags/v1.1.1.tar.gz"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
